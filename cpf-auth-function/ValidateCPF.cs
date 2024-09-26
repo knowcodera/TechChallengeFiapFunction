@@ -31,5 +31,6 @@ public static class ValidateCPF
         }
 
         return new OkObjectResult($"CPF válido: {cpf}");
+        //Testando pipeline de CI/ CD
     }
 }
