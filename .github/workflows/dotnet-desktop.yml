@@ -3,34 +3,37 @@ name: Azure Functions CI/CD
 on:
   push:
     branches:
-      - main  # O pipeline será acionado quando houver push na branch 'main'
+      - main
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest  # Utiliza o ambiente Ubuntu para rodar as tarefas
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository  # Faz o checkout do código no repositório
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Setup .NET Core  # Configura o ambiente com .NET
+    - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '6.0.x'  # Certifique-se de que essa versão corresponde ao .NET usado no seu projeto
+        dotnet-version: '8.0.x'  # Ajuste para a versão correta do .NET (no caso 8.0.x)
 
-    - name: Install dependencies  # Instala as dependências do projeto
-      run: dotnet restore
+    - name: Navigate to project directory  # Adiciona este passo para entrar no diretório correto
+      run: cd C:/Projetos/TechChallengeFiapFunction/cpf-auth-function
 
-    - name: Build the project  # Constrói o projeto para gerar os artefatos
-      run: dotnet build --configuration Release --output ./build
+    - name: Install dependencies
+      run: dotnet restore cpf-auth-function.csproj  # Restaura as dependências com o caminho correto
 
-    - name: Deploy to Azure Functions  # Faz o deploy na Azure Function
+    - name: Build the project
+      run: dotnet build cpf-auth-function.csproj --configuration Release --output ./output  # Compila o projeto no caminho correto
+
+    - name: Deploy to Azure Functions
       uses: Azure/functions-action@v1
       id: fa
       with:
-        app-name: MyCpfAuthFunction   # Substitua pelo nome da sua Azure Function
-        package: './build'  # O diretório onde os artefatos construídos estão localizados
+        app-name: MyCpfAuthFunction   # Nome da sua Azure Function
+        package: './output'
         publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
-    - name: Notify GitHub  # Exibe uma mensagem de sucesso no GitHub
+    - name: Notify GitHub
       run: echo "Deploy feito com sucesso!"
