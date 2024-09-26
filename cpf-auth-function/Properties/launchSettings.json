@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "cpf_auth_function": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7210",
+      "launchBrowser": false
+    }
+  }
+}
