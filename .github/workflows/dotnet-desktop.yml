@@ -19,18 +19,17 @@ jobs:
         dotnet-version: '6.0.x'  # Certifique-se de que essa versão corresponde ao .NET usado no seu projeto
 
     - name: Install dependencies  # Instala as dependências do projeto
-      run: dotnet restore cpf-auth-function/cpf-auth-function.csproj  # Forneça o caminho completo para o arquivo .csproj
+      run: dotnet restore cpf-auth-function/cpf-auth-function.csproj
 
     - name: Build the project  # Constrói o projeto para gerar os artefatos
       run: dotnet build cpf-auth-function/cpf-auth-function.csproj --configuration Release --output ./build
 
-    - name: Deploy to Azure Functions  # Faz o deploy na Azure Function
+    - name: Deploy to Azure Functions using Zip Deploy  # Faz o deploy usando o método Zip Deploy
       uses: Azure/functions-action@v1
-      id: fa
       with:
-        app-name: MyCpfAuthFunction   # Substitua pelo nome da sua Azure Function
+        app-name: MyCpfAuthFunction  # Nome da sua Azure Function
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}  # Publish profile adicionado como secret no GitHub
         package: './build'  # O diretório onde os artefatos construídos estão localizados
-        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
     - name: Notify GitHub  # Exibe uma mensagem de sucesso no GitHub
       run: echo "Deploy feito com sucesso!"
