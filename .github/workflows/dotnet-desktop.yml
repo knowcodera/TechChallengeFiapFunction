@@ -7,25 +7,22 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Ambiente Linux
 
     steps:
-    - name: Checkout repository
+    - name: Checkout repository  # Faz o checkout do código
       uses: actions/checkout@v2
 
-    - name: Setup .NET Core
+    - name: Setup .NET Core  # Configura o .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '8.0.x'  # Ajuste para a versão correta do .NET (no caso 8.0.x)
-
-    - name: Navigate to project directory  # Adiciona este passo para entrar no diretório correto
-      run: cd C:/Projetos/TechChallengeFiapFunction/cpf-auth-function
+        dotnet-version: '8.0.x'
 
     - name: Install dependencies
-      run: dotnet restore cpf-auth-function.csproj  # Restaura as dependências com o caminho correto
+      run: dotnet restore ./cpf-auth-function/cpf-auth-function.csproj  # Caminho relativo ao arquivo .csproj
 
     - name: Build the project
-      run: dotnet build cpf-auth-function.csproj --configuration Release --output ./output  # Compila o projeto no caminho correto
+      run: dotnet build ./cpf-auth-function/cpf-auth-function.csproj --configuration Release --output ./output  # Caminho relativo ao arquivo .csproj
 
     - name: Deploy to Azure Functions
       uses: Azure/functions-action@v1
