@@ -3,33 +3,40 @@ name: Azure Functions CI/CD
 on:
   push:
     branches:
-      - main  # O pipeline será acionado quando houver push na branch 'main'
+      - main
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest  # Utiliza o ambiente Ubuntu para rodar as tarefas
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository  # Faz o checkout do código no repositório
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Setup .NET Core  # Configura o ambiente com .NET
+    - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '6.0.x'  # Certifique-se de que essa versão corresponde ao .NET usado no seu projeto
+        dotnet-version: '6.0.x'  # Certifique-se de que corresponde à versão do .NET que você está usando
 
-    - name: Install dependencies  # Instala as dependências do projeto
-      run: dotnet restore cpf-auth-function/cpf-auth-function.csproj
+    - name: Install dependencies
+      run: dotnet restore
 
-    - name: Build the project  # Constrói o projeto para gerar os artefatos
-      run: dotnet build cpf-auth-function/cpf-auth-function.csproj --configuration Release --output ./build
+    - name: Build the project
+      run: dotnet build --configuration Release --output ./build
 
-    - name: Deploy to Azure Functions using Zip Deploy  # Faz o deploy usando o método Zip Deploy
-      uses: Azure/functions-action@v1
+    - name: Archive build output
+      uses: actions/upload-artifact@v2
       with:
-        app-name: MyCpfAuthFunction  # Nome da sua Azure Function
-        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}  # Publish profile adicionado como secret no GitHub
-        package: './build'  # O diretório onde os artefatos construídos estão localizados
+        name: build-artifact
+        path: ./build
 
-    - name: Notify GitHub  # Exibe uma mensagem de sucesso no GitHub
+    - name: Deploy to Azure Functions
+      uses: Azure/functions-action@v1
+      id: fa
+      with:
+        app-name: MyCpfAuthFunction   # Nome da sua Azure Function
+        package: './build'
+        publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+
+    - name: Notify GitHub
       run: echo "Deploy feito com sucesso!"
