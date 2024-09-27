@@ -1,23 +1,20 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy dotnet core app to Azure Function App - MyCpfAuthFunction
+name: Azure Functions CI/CD
 
 on:
   push:
     branches:
-      - main
+      - main  # O pipeline será acionado quando houver push na branch 'main'
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '8.0.x' # set this to the dotnet version to use
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'cpf-auth-function'  # Caminho para a função
+  DOTNET_VERSION: '6.0.x'  # Defina a versão do .NET usada no projeto
 
 jobs:
   build-and-deploy:
     runs-on: windows-latest
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write  # Necessário para autenticação JWT no Azure
 
     steps:
       - name: 'Checkout GitHub Action'
@@ -28,25 +25,25 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Dotnet'
-        shell: pwsh
+      - name: 'Resolve Project Dependencies and Build'
+        shell: pwsh  # Usa PowerShell para rodar o script no Windows
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          dotnet build --configuration Release --output ./output
+          dotnet restore cpf-auth-function.csproj  # Caminho correto para o arquivo .csproj
+          dotnet build cpf-auth-function.csproj --configuration Release --output ./output
           popd
-      
-      - name: Login to Azure
+
+      - name: 'Login to Azure'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4FFAEB8BF091469D96320A1B8E39826C }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F2CFD5E91FC247528AB5179DD0BE3492 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5ED50FF948B3408A8891543960939258 }}
 
-      - name: 'Run Azure Functions Action'
+      - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: 'MyCpfAuthFunction'
+          app-name: 'MyCpfAuthFunction'  # Substitua pelo nome da sua Azure Function
           slot-name: 'Production'
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-          
+          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'  # Define o caminho correto para o pacote compilado
