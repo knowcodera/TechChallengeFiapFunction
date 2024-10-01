@@ -47,3 +47,7 @@ jobs:
           app-name: 'MyCpfAuthFunction'  # Substitua pelo nome da sua Azure Function
           slot-name: 'Production'
           package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'  # Define o caminho correto para o pacote compilado
+
+      - name: 'Verify Deployment Success'
+        run: echo "Deployment succeeded!"
+        if: ${{ success() }}  # Confirmação de sucesso do workflow
