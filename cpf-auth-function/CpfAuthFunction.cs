@@ -21,18 +21,18 @@ public static class CpfAuthFunction
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
         ILogger log)
     {
-        log.LogInformation("Iniciando o processamento da requisição de autenticação.");
+        log.LogInformation("Iniciando o processamento da requisiï¿½ï¿½o de autenticaï¿½ï¿½o.");
 
         string requestBody;
         try
         {
             requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            log.LogInformation("Corpo da requisição lido com sucesso.");
+            log.LogInformation("Corpo da requisiï¿½ï¿½o lido com sucesso.");
         }
         catch (Exception ex)
         {
-            log.LogError($"Erro ao ler o corpo da requisição: {ex.Message}");
-            return new ObjectResult(new { error = "Erro ao ler o corpo da requisição.", details = ex.Message })
+            log.LogError($"Erro ao ler o corpo da requisiï¿½ï¿½o: {ex.Message}");
+            return new ObjectResult(new { error = "Erro ao ler o corpo da requisiï¿½ï¿½o.", details = ex.Message })
             {
                 StatusCode = StatusCodes.Status500InternalServerError
             };
@@ -42,12 +42,12 @@ public static class CpfAuthFunction
         try
         {
             data = JsonConvert.DeserializeObject<AuthenticationRequest>(requestBody);
-            log.LogInformation("Dados da requisição desserializados com sucesso.");
+            log.LogInformation("Dados da requisiï¿½ï¿½o desserializados com sucesso.");
         }
         catch (Exception ex)
         {
-            log.LogError($"Erro ao desserializar os dados da requisição: {ex.Message}");
-            return new BadRequestObjectResult(new { error = "Erro ao processar os dados da requisição.", details = ex.Message });
+            log.LogError($"Erro ao desserializar os dados da requisiï¿½ï¿½o: {ex.Message}");
+            return new BadRequestObjectResult(new { error = "Erro ao processar os dados da requisiï¿½ï¿½o.", details = ex.Message });
         }
 
         string cpf = data?.Cpf;
@@ -56,35 +56,35 @@ public static class CpfAuthFunction
 
         if (string.IsNullOrEmpty(cpf))
         {
-            log.LogWarning("CPF não foi fornecido.");
-            return new BadRequestObjectResult(new { error = "CPF é obrigatório." });
+            log.LogWarning("CPF nï¿½o foi fornecido.");
+            return new BadRequestObjectResult(new { error = "CPF ï¿½ obrigatï¿½rio." });
         }
 
         if (cpf == "anonymous")
         {
-            log.LogInformation("Usuário anônimo identificado.");
-            return new OkObjectResult(new { Message = "Usuário anônimo" });
+            log.LogInformation("Usuï¿½rio anï¿½nimo identificado.");
+            return new OkObjectResult(new { Message = "Usuï¿½rio anï¿½nimo" });
         }
 
         if (!IsValidCpf(cpf))
         {
-            log.LogWarning($"CPF inválido fornecido: {cpf}");
-            return new BadRequestObjectResult(new { error = "CPF inválido." });
+            log.LogWarning($"CPF invï¿½lido fornecido: {cpf}");
+            return new BadRequestObjectResult(new { error = "CPF invï¿½lido." });
         }
 
         string connectionString = Environment.GetEnvironmentVariable("SQLCONNSTR_SqlConnectionString");
 
         if (string.IsNullOrEmpty(connectionString))
         {
-            log.LogError("A string de conexão com o banco de dados está vazia ou não foi definida.");
-            return new ObjectResult(new { error = "A string de conexão com o banco de dados está vazia." })
+            log.LogError("A string de conexï¿½o com o banco de dados estï¿½ vazia ou nï¿½o foi definida.");
+            return new ObjectResult(new { error = "A string de conexï¿½o com o banco de dados estï¿½ vazia." })
             {
                 StatusCode = StatusCodes.Status500InternalServerError
             };
         }
         else
         {
-            log.LogInformation($"String de conexão obtida: {connectionString}");
+            log.LogInformation($"String de conexï¿½o obtida: {connectionString}");
         }
 
 
@@ -96,7 +96,7 @@ public static class CpfAuthFunction
                 var token = string.Empty;
 
                 await conn.OpenAsync();
-                log.LogInformation("Conexão com o banco de dados estabelecida com sucesso.");
+                log.LogInformation("Conexï¿½o com o banco de dados estabelecida com sucesso.");
 
                 string query = "SELECT * FROM Client WHERE Cpf = @Cpf";
 
@@ -119,8 +119,8 @@ public static class CpfAuthFunction
 
                 if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email))
                 {
-                    log.LogWarning("Nome ou email ausentes para o cadastro de um novo usuário.");
-                    return new BadRequestObjectResult(new { error = "Nome e Email são obrigatórios para novos usuários." });
+                    log.LogWarning("Nome ou email ausentes para o cadastro de um novo usuï¿½rio.");
+                    return new BadRequestObjectResult(new { error = "Nome e Email sï¿½o obrigatï¿½rios para novos usuï¿½rios." });
                 }
 
                 string insertQuery = "INSERT INTO Client (Name, Email, Cpf) VALUES (@Name, @Email, @Cpf)";
@@ -158,7 +158,7 @@ public static class CpfAuthFunction
     private static string GenerateJwtToken(string cpf, string email)
 
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SQLCONNSTR_JwtSecretKey")));  
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JwtSecretKey")));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
