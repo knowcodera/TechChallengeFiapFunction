@@ -158,7 +158,7 @@ public static class CpfAuthFunction
     private static string GenerateJwtToken(string cpf, string email)
 
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SQLCONNSTR_JwtSecretKey")));  
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JwtSecretKey")));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
