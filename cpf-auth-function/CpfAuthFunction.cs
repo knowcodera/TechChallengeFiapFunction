@@ -9,6 +9,10 @@ using Newtonsoft.Json;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 
 public static class CpfAuthFunction
 {
@@ -89,6 +93,8 @@ public static class CpfAuthFunction
             log.LogInformation("Tentando conectar ao banco de dados...");
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
+                var token = string.Empty;
+
                 await conn.OpenAsync();
                 log.LogInformation("Conexão com o banco de dados estabelecida com sucesso.");
 
@@ -105,14 +111,8 @@ public static class CpfAuthFunction
                             await reader.ReadAsync();
                             log.LogInformation($"Cliente com CPF {cpf} encontrado no banco de dados.");
 
-                            var customer = new
-                            {
-                                Id = reader["Id"],
-                                Name = reader["Name"],
-                                Email = reader["Email"],
-                                Cpf = reader["Cpf"]
-                            };
-                            return new OkObjectResult(customer);
+                            token = GenerateJwtToken(cpf, email);
+                            return new OkObjectResult(new { Token = token });
                         }
                     }
                 }
@@ -133,7 +133,8 @@ public static class CpfAuthFunction
                     log.LogInformation($"Novo cliente com CPF {cpf} cadastrado com sucesso.");
                 }
 
-                return new OkObjectResult(new { Message = "Usuário registrado com sucesso." });
+                token = GenerateJwtToken(cpf, email);
+                return new OkObjectResult(new { Token = token });
             }
         }
         catch (SqlException ex)
@@ -152,6 +153,27 @@ public static class CpfAuthFunction
                 StatusCode = StatusCodes.Status500InternalServerError
             };
         }
+    }
+
+    private static string GenerateJwtToken(string cpf, string email)
+
+    {
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("SQLCONNSTR_JwtSecretKey")));  
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, cpf),
+            new Claim(JwtRegisteredClaimNames.Email, email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.Now.AddHours(1),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public class AuthenticationRequest
